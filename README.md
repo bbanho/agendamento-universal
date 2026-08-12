@@ -22,3 +22,18 @@ tests/usecases.test.ts        ← testes dos casos de uso
 
 - Proposta e ADR: `docs.axio.eng.br/ampla/projetos/agendamento-universal` (hub multi-projeto)
 - Decisões de arquitetura: ADR-001 (hexagonal, TS+Bun, FHIR-inspired, golden tests, LLM design-time)
+
+## Comandos canônicos
+
+```bash
+bun run typecheck   # tsc --noEmit
+bun run test        # golden + usecases + sqlite
+bun run e2e         # Playwright (API + browser demo)
+bun run dev         # servidor :3000
+```
+
+## CI/CD
+
+- **CI**: typecheck → unit → e2e → build (GitHub Actions, Bun)
+- **CD**: push em `feat/wiki-docs` → publica wiki em `docs.axio.eng.br/ampla/`
+- **Secret**: `DEPLOY_SSH_KEY` (acesso ao repo `infointra-docs`)
