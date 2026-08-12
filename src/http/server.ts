@@ -18,7 +18,6 @@ export interface AppDeps {
 
 export function createApp(deps: AppDeps): Server<{}> {
   const { agenda, patients, events, erp } = deps
-
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
