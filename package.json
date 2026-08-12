@@ -4,8 +4,10 @@
   "description": "Sistema de agendamento simples, integrado ao ecossistema ERP (full duplex)",
   "type": "module",
   "scripts": {
-    "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "test": "bun test tests/",
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "dev": "bun run src/http/main.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
