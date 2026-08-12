@@ -23,7 +23,7 @@ export async function remarcarConsulta(
 
   // R3 — janela de 24h
   const janela = canReschedule(appt.start, input.now)
-  if (!janela.ok) return { ok: false, conflict: janela.conflict }
+  if (!janela.ok) return { ok: false as const, conflict: janela.conflict }
 
   const newSlot = await agenda.getSlot(input.newSlotId)
   if (!newSlot || newSlot.status !== 'free') {
@@ -40,9 +40,9 @@ export async function remarcarConsulta(
   await agenda.saveAppointment(moved)
 
   await events.tryAppend({
-    kind: 'appointment.created',
+    kind: 'appointment.moved',
     appointmentId: moved.id,
-    payload: { patientId: moved.patientId, slotId: moved.slotId, start: moved.start },
+    payload: { patientId: moved.patientId, fromSlotId: appt.slotId, toSlotId: moved.slotId, start: moved.start },
     idempotencyKey: `moved-${moved.id}`,
   })
 

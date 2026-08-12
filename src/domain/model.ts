@@ -35,7 +35,7 @@ export interface Appointment {
 }
 
 export interface DomainEvent {
-  kind: 'appointment.created' | 'appointment.removed'
+  kind: 'appointment.created' | 'appointment.moved' | 'appointment.removed'
   appointmentId: ID
   payload: Record<string, unknown>
   idempotencyKey: string // D7 — reenvio não duplica
