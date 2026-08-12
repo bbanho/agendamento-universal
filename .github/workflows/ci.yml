@@ -1,0 +1,58 @@
+name: CI — Agendamento Universal
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - run: bun install
+      - run: bun run typecheck
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - run: bun install
+      - run: bun run test
+
+  e2e:
+    name: E2E (API + browser demo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - run: bun install
+      - run: bunx playwright install chromium
+      - run: bun run src/http/main.ts &
+        env: { CI: true }
+      - run: sleep 2
+      - run: curl -f http://localhost:3000/health
+      - run: bun run e2e
+        env: { CI: true }
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - run: bun install
+      - run: bun run src/http/main.ts &
+      - run: sleep 2
+      - run: bun run e2e
+        env: { CI: true }
+      - run: bun run build

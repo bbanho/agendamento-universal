@@ -1,0 +1,43 @@
+name: CD — Wiki → Hub docs.axio.eng.br
+
+on:
+  push:
+    branches: [ feat/wiki-docs ]
+    paths:
+      - 'wiki/**'
+      - '.vitepress/**'
+
+jobs:
+  publish-wiki:
+    name: Publish wiki to hub
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_SSH_KEY }}
+          persist-credentials: true
+
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+
+      - run: bun install
+        working-directory: wiki
+
+      - run: npm run build -- --base /ampla/
+        working-directory: wiki
+
+      - name: Prepare public repo clone
+        run: |
+          git clone git@github.com:bbanho/infointra-docs.git /tmp/infointra-docs
+          rm -rf /tmp/infointra-docs/ampla
+          mkdir -p /tmp/infointra-docs/ampla
+          cp -r wiki/.vitepress/dist/* /tmp/infointra-docs/ampla/
+
+      - name: Commit and push
+        run: |
+          cd /tmp/infointra-docs
+          git config user.name "Bruno Banho"
+          git config user.email "bbanho@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "docs: publish wiki from amplainformatica-erp-integrado"
+          git push origin main
