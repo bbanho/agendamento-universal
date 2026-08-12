@@ -28,6 +28,12 @@ export function createApp(deps: AppDeps): Server<{}> {
       const url = new URL(req.url)
       const method = req.method
 
+      // GET / — frontend demo (estático)
+      if (method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
+        const file = Bun.file(new URL('../../public/index.html', import.meta.url))
+        return new Response(file, { headers: { 'content-type': 'text/html; charset=utf-8' } })
+      }
+
       // GET /disponibilidade?scheduleId=s1&from=...&to=...
       if (method === 'GET' && url.pathname === '/disponibilidade') {
         const r = await consultarDisponibilidade(agenda, {

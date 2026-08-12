@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendamento Universal — Demo</title>
+  <style>
+    :root { --brand: #8b5cf6; --bg: #f6f5fb; --card: #fff; --text: #1a1a2e; --ok: #16a34a; --err: #dc2626; }
+    * { box-sizing: border-box; margin: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; }
+    h1 { font-size: 1.4rem; margin-bottom: .3rem; }
+    .sub { color: #6b7280; font-size: .85rem; margin-bottom: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }
+    .card { background: var(--card); border-radius: 10px; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid #e5e7eb; }
+    .slot { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .slot.free { border-left: 4px solid var(--brand); }
+    .slot.booked { border-left: 4px solid #9ca3af; opacity: .55; }
+    .time { font-weight: 600; }
+    button { background: var(--brand); color: #fff; border: 0; border-radius: 6px; padding: .4rem .8rem; cursor: pointer; font-size: .8rem; }
+    button:disabled { background: #c4b5fd; cursor: not-allowed; }
+    button.ghost { background: transparent; color: var(--err); border: 1px solid var(--err); }
+    .status { margin-top: 1.2rem; padding: .8rem 1rem; border-radius: 8px; font-size: .85rem; display: none; }
+    .status.ok { display: block; background: #dcfce7; color: var(--ok); }
+    .status.err { display: block; background: #fee2e2; color: var(--err); }
+    .legend { margin-top: 1rem; font-size: .75rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>🩺 Agendamento Universal — demo</h1>
+  <p class="sub">Dra. Ana · Agenda s1 · 2026-08-12 · regras R1–R5 ativas (pausa 15min, retorno prioriza, janela 24h)</p>
+  <div class="grid" id="slots"></div>
+  <div class="status" id="status"></div>
+  <p class="legend">Clique em um horário livre para agendar como <b>Maria</b> (1ª consulta). Cancelar libera o slot imediatamente (R4).</p>
+
+  <script>
+    const $ = (id) => document.getElementById(id)
+    const FROM = '2026-08-12T08:00:00', TO = '2026-08-12T18:00:00'
+
+    async function load() {
+      const r = await fetch(`/disponibilidade?scheduleId=s1&from=${FROM}&to=${TO}`)
+      const d = await r.json()
+      // innerHTML seguro: dados vêm do seed do servidor (ids/times controlados), não de input de usuário
+      $('slots').innerHTML = d.slots.map((s) => `
+        <div class="card slot ${s.status}">
+          <span class="time">${s.start.slice(11, 16)}</span>
+          <button ${s.status !== 'free' ? 'disabled' : ''} onclick="agendar('${s.id}')">Agendar</button>
+        </div>`).join('')
+    }
+
+    async function agendar(slotId) {
+      const status = $('status')
+      status.className = 'status'
+      const r = await fetch('/agendamentos', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ patientId: 'pa1', slotId }) })
+      const body = await r.json()
+      if (r.ok) {
+        const a = body.appointment
+        status.className = 'status ok'
+        status.textContent = `✅ Agendado ${a.start.slice(11, 16)} como ${a.kind === 'followUp' ? 'retorno' : '1ª consulta'} (id ${a.id}).`
+      } else {
+        status.className = 'status err'
+        status.textContent = `❌ ${body.reason}`
+      }
+      load()
+    }
+
+    load()
+  </script>
+</body>
+</html>
